@@ -519,8 +519,50 @@ pub fn run_daemon(name: String, command: Vec<String>) -> Result<()> {
                             pty_drained = true;
                         }
                     } else {
+                        // Read error other than WouldBlock — almost always EIO
+                        // on Linux, which fires once the slave is fully closed
+                        // (child has exited or is about to). Capture the real
+                        // exit status via waitpid so we don't report code=None
+                        // for a clean exit. Bounded wait covers the race where
+                        // the kernel reports the closed slave before SIGCHLD.
                         if !state.child_exited {
-                            state.child_exited = true;
+                            let deadline = std::time::Instant::now()
+                                + Duration::from_millis(500);
+                            loop {
+                                match waitpid(
+                                    child_pid,
+                                    Some(WaitPidFlag::WNOHANG),
+                                ) {
+                                    Ok(WaitStatus::Exited(_, code)) => {
+                                        state.exit_code = Some(code);
+                                        state.child_exited = true;
+                                        child_exit_time =
+                                            Some(std::time::Instant::now());
+                                        break;
+                                    }
+                                    Ok(WaitStatus::Signaled(_, _, _)) => {
+                                        state.exit_code = None;
+                                        state.child_exited = true;
+                                        child_exit_time =
+                                            Some(std::time::Instant::now());
+                                        break;
+                                    }
+                                    _ => {
+                                        if std::time::Instant::now() >= deadline
+                                        {
+                                            // Fall back: mark exited so we
+                                            // don't spin on EIO forever.
+                                            state.child_exited = true;
+                                            child_exit_time =
+                                                Some(std::time::Instant::now());
+                                            break;
+                                        }
+                                        std::thread::sleep(
+                                            Duration::from_millis(5),
+                                        );
+                                    }
+                                }
+                            }
                         }
                         pty_drained = true;
                     }
