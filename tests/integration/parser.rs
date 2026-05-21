@@ -141,21 +141,17 @@ fn validate_scenario(scenario: &Scenario) -> Result<(), String> {
         match action {
             Action::WaitForOutput {
                 contains, regex, ..
-            } => {
-                if contains.is_none() && regex.is_none() {
-                    return Err(format!(
-                        "Action {} (wait_for_output): must specify 'contains' or 'regex'",
-                        i
-                    ));
-                }
+            } if contains.is_none() && regex.is_none() => {
+                return Err(format!(
+                    "Action {} (wait_for_output): must specify 'contains' or 'regex'",
+                    i
+                ));
             }
-            Action::SendInput { text } => {
-                if text.is_empty() {
-                    return Err(format!(
-                        "Action {} (send_input): text cannot be empty",
-                        i
-                    ));
-                }
+            Action::SendInput { text } if text.is_empty() => {
+                return Err(format!(
+                    "Action {} (send_input): text cannot be empty",
+                    i
+                ));
             }
             _ => {}
         }

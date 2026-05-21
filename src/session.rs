@@ -154,7 +154,7 @@ pub fn list_sessions() -> Result<Vec<SessionInfo>> {
         let _ = remove_session(&name);
     }
 
-    sessions.sort_by(|a, b| a.created_at.cmp(&b.created_at));
+    sessions.sort_by_key(|s| s.created_at);
     Ok(sessions)
 }
 
