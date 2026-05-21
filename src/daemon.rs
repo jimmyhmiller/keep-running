@@ -95,7 +95,6 @@ impl DaemonState {
                 }
             }
         }
-
     }
 
     /// Buffer output data AND send to client if connected.
@@ -463,8 +462,7 @@ pub fn run_daemon(name: String, command: Vec<String>) -> Result<()> {
         // `send_buf` into — otherwise we'd burn ~95% CPU spinning on a buffer with
         // no consumer (this is what caused stuck daemons after a child exited but
         // a queued ChildExited message had no client to receive it).
-        let has_drainable_work =
-            !state.send_buf.is_empty() || state.replay_offset.is_some();
+        let has_drainable_work = !state.send_buf.is_empty() || state.replay_offset.is_some();
         let timeout_ms = if has_drainable_work && state.client.is_some() {
             1
         } else {
@@ -472,7 +470,11 @@ pub fn run_daemon(name: String, command: Vec<String>) -> Result<()> {
         };
 
         let poll_ret = unsafe {
-            libc::poll(pollfds.as_mut_ptr(), pollfds.len() as libc::nfds_t, timeout_ms)
+            libc::poll(
+                pollfds.as_mut_ptr(),
+                pollfds.len() as libc::nfds_t,
+                timeout_ms,
+            )
         };
 
         // poll error (not EINTR)
@@ -526,40 +528,30 @@ pub fn run_daemon(name: String, command: Vec<String>) -> Result<()> {
                         // for a clean exit. Bounded wait covers the race where
                         // the kernel reports the closed slave before SIGCHLD.
                         if !state.child_exited {
-                            let deadline = std::time::Instant::now()
-                                + Duration::from_millis(500);
+                            let deadline = std::time::Instant::now() + Duration::from_millis(500);
                             loop {
-                                match waitpid(
-                                    child_pid,
-                                    Some(WaitPidFlag::WNOHANG),
-                                ) {
+                                match waitpid(child_pid, Some(WaitPidFlag::WNOHANG)) {
                                     Ok(WaitStatus::Exited(_, code)) => {
                                         state.exit_code = Some(code);
                                         state.child_exited = true;
-                                        child_exit_time =
-                                            Some(std::time::Instant::now());
+                                        child_exit_time = Some(std::time::Instant::now());
                                         break;
                                     }
                                     Ok(WaitStatus::Signaled(_, _, _)) => {
                                         state.exit_code = None;
                                         state.child_exited = true;
-                                        child_exit_time =
-                                            Some(std::time::Instant::now());
+                                        child_exit_time = Some(std::time::Instant::now());
                                         break;
                                     }
                                     _ => {
-                                        if std::time::Instant::now() >= deadline
-                                        {
+                                        if std::time::Instant::now() >= deadline {
                                             // Fall back: mark exited so we
                                             // don't spin on EIO forever.
                                             state.child_exited = true;
-                                            child_exit_time =
-                                                Some(std::time::Instant::now());
+                                            child_exit_time = Some(std::time::Instant::now());
                                             break;
                                         }
-                                        std::thread::sleep(
-                                            Duration::from_millis(5),
-                                        );
+                                        std::thread::sleep(Duration::from_millis(5));
                                     }
                                 }
                             }
@@ -617,24 +609,26 @@ pub fn run_daemon(name: String, command: Vec<String>) -> Result<()> {
                                                 state.queue_message(&DaemonMessage::Attached);
                                                 should_replay = true;
 
-                                                if state.child_exited && pty_drained && !exit_notified {
+                                                if state.child_exited
+                                                    && pty_drained
+                                                    && !exit_notified
+                                                {
                                                     let msg = DaemonMessage::ChildExited {
                                                         code: state.exit_code,
                                                     };
                                                     state.queue_message(&msg);
                                                     exit_notified = true;
-                                                    exit_notified_at = Some(std::time::Instant::now());
+                                                    exit_notified_at =
+                                                        Some(std::time::Instant::now());
                                                 }
                                             }
-                                            ClientMessage::Input(data) => {
-                                                unsafe {
-                                                    libc::write(
-                                                        master_fd,
-                                                        data.as_ptr() as *const libc::c_void,
-                                                        data.len(),
-                                                    );
-                                                }
-                                            }
+                                            ClientMessage::Input(data) => unsafe {
+                                                libc::write(
+                                                    master_fd,
+                                                    data.as_ptr() as *const libc::c_void,
+                                                    data.len(),
+                                                );
+                                            },
                                             ClientMessage::Resize { cols, rows } => {
                                                 resize_request = Some((cols, rows));
                                             }
@@ -767,4 +761,3 @@ pub fn start_daemon(name: String, command: Vec<String>) -> Result<()> {
 
     Ok(())
 }
-

@@ -419,10 +419,7 @@ impl TestClient {
         if let Some(code) = self.exit_received.take() {
             if let Some(expected) = expected_code {
                 if code != Some(expected) {
-                    return Err(format!(
-                        "Expected exit code {}, got {:?}",
-                        expected, code
-                    ));
+                    return Err(format!("Expected exit code {}, got {:?}", expected, code));
                 }
             }
             return Ok(());
@@ -480,7 +477,6 @@ impl TestClient {
     pub fn get_output(&self) -> &[u8] {
         &self.accumulated_output
     }
-
 
     /// Check if replay contains expected content
     pub fn check_replay_contains(&self, expected: &str) -> bool {
@@ -639,7 +635,10 @@ pub fn run_scenario(scenario: &Scenario) -> Result<(), String> {
                 let session_name = name.as_ref().unwrap_or(&ctx.session_name);
                 let path = ctx.session_dir.join(format!("{}.json", session_name));
                 if !path.exists() {
-                    return Err(format!("Expected session file to exist: {}", path.display()));
+                    return Err(format!(
+                        "Expected session file to exist: {}",
+                        path.display()
+                    ));
                 }
             }
 
@@ -647,7 +646,10 @@ pub fn run_scenario(scenario: &Scenario) -> Result<(), String> {
                 let session_name = name.as_ref().unwrap_or(&ctx.session_name);
                 let path = ctx.session_dir.join(format!("{}.json", session_name));
                 if path.exists() {
-                    return Err(format!("Expected session file to be gone: {}", path.display()));
+                    return Err(format!(
+                        "Expected session file to be gone: {}",
+                        path.display()
+                    ));
                 }
             }
         }

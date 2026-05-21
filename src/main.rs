@@ -74,8 +74,7 @@ fn resolve_program(program: &str) -> Result<PathBuf> {
         return Ok(path.to_path_buf());
     }
 
-    let path_var = std::env::var_os("PATH")
-        .ok_or_else(|| anyhow::anyhow!("PATH is not set"))?;
+    let path_var = std::env::var_os("PATH").ok_or_else(|| anyhow::anyhow!("PATH is not set"))?;
     for dir in std::env::split_paths(&path_var) {
         let candidate = dir.join(program);
         if let Ok(meta) = candidate.metadata() {
@@ -338,19 +337,13 @@ mod tests {
         // print "Failed to exec" into the PTY.
         let f = tempfile::NamedTempFile::new().unwrap();
         let err = resolve_program(f.path().to_str().unwrap()).unwrap_err();
-        assert!(
-            err.to_string().contains("not executable"),
-            "got: {err}"
-        );
+        assert!(err.to_string().contains("not executable"), "got: {err}");
     }
 
     #[test]
     fn resolve_program_absolute_missing() {
         let err = resolve_program("/nonexistent/path/xyzzy-12345").unwrap_err();
-        assert!(
-            err.to_string().contains("command not found"),
-            "got: {err}"
-        );
+        assert!(err.to_string().contains("command not found"), "got: {err}");
     }
 
     #[test]
@@ -362,8 +355,7 @@ mod tests {
 
     #[test]
     fn resolve_program_bare_name_not_on_path() {
-        let err =
-            resolve_program("definitely-not-a-real-binary-xyzzy-987").unwrap_err();
+        let err = resolve_program("definitely-not-a-real-binary-xyzzy-987").unwrap_err();
         assert!(err.to_string().contains("command not found"));
     }
 

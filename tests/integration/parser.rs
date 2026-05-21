@@ -43,14 +43,10 @@ pub enum Action {
     },
 
     /// Send text input
-    SendInput {
-        text: String,
-    },
+    SendInput { text: String },
 
     /// Send raw bytes
-    SendBytes {
-        bytes: Vec<u8>,
-    },
+    SendBytes { bytes: Vec<u8> },
 
     /// Wait for specific output pattern
     WaitForOutput {
@@ -77,15 +73,10 @@ pub enum Action {
     DisconnectRaw,
 
     /// Sleep for a duration
-    Sleep {
-        duration_ms: u64,
-    },
+    Sleep { duration_ms: u64 },
 
     /// Resize the terminal
-    Resize {
-        cols: u16,
-        rows: u16,
-    },
+    Resize { cols: u16, rows: u16 },
 
     /// Assert that session file exists
     AssertSessionExists {
@@ -148,10 +139,7 @@ fn validate_scenario(scenario: &Scenario) -> Result<(), String> {
                 ));
             }
             Action::SendInput { text } if text.is_empty() => {
-                return Err(format!(
-                    "Action {} (send_input): text cannot be empty",
-                    i
-                ));
+                return Err(format!("Action {} (send_input): text cannot be empty", i));
             }
             _ => {}
         }

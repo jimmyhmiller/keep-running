@@ -49,7 +49,9 @@ pub fn encode_message<T: Serialize>(msg: &T) -> anyhow::Result<Vec<u8>> {
 
 /// Decode a length-prefixed message from a buffer
 /// Returns (message, bytes_consumed) or None if incomplete
-pub fn decode_message<T: for<'de> Deserialize<'de>>(buf: &[u8]) -> anyhow::Result<Option<(T, usize)>> {
+pub fn decode_message<T: for<'de> Deserialize<'de>>(
+    buf: &[u8],
+) -> anyhow::Result<Option<(T, usize)>> {
     if buf.len() < 4 {
         return Ok(None);
     }

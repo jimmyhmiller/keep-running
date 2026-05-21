@@ -18,8 +18,7 @@ fn binary_path() -> String {
     if let Ok(p) = std::env::var("CARGO_BIN_EXE_keep-running") {
         return p;
     }
-    let manifest_dir =
-        std::env::var("CARGO_MANIFEST_DIR").expect("CARGO_MANIFEST_DIR must be set");
+    let manifest_dir = std::env::var("CARGO_MANIFEST_DIR").expect("CARGO_MANIFEST_DIR must be set");
     std::path::PathBuf::from(manifest_dir)
         .join("target")
         .join("debug")
@@ -30,11 +29,8 @@ fn binary_path() -> String {
 
 #[test]
 fn ctrl_a_d_detaches_and_leaves_daemon_running() {
-    let mut session = PtySession::spawn(
-        &binary_path(),
-        &["run", "--", "sleep", "30"],
-    )
-    .expect("spawn");
+    let mut session =
+        PtySession::spawn(&binary_path(), &["run", "--", "sleep", "30"]).expect("spawn");
 
     session
         .wait_for("attached to", Duration::from_secs(5))
@@ -43,7 +39,10 @@ fn ctrl_a_d_detaches_and_leaves_daemon_running() {
     let daemon_pid = session
         .daemon_pid()
         .expect("daemon pid should be in session file once attached");
-    assert!(pid_alive(daemon_pid), "daemon should be alive while attached");
+    assert!(
+        pid_alive(daemon_pid),
+        "daemon should be alive while attached"
+    );
 
     session.write(b"\x01d").expect("send Ctrl+a d");
 
@@ -54,7 +53,11 @@ fn ctrl_a_d_detaches_and_leaves_daemon_running() {
     let status = session
         .wait_exit(Duration::from_secs(5))
         .expect("client should exit after detach");
-    assert!(status.success(), "client exit should be clean: {:?}", status);
+    assert!(
+        status.success(),
+        "client exit should be clean: {:?}",
+        status
+    );
 
     // Detach must leave the daemon alive so we can reattach.
     assert!(
@@ -70,11 +73,8 @@ fn ctrl_a_d_detaches_and_leaves_daemon_running() {
 
 #[test]
 fn ctrl_a_k_kills_session() {
-    let mut session = PtySession::spawn(
-        &binary_path(),
-        &["run", "--", "sleep", "30"],
-    )
-    .expect("spawn");
+    let mut session =
+        PtySession::spawn(&binary_path(), &["run", "--", "sleep", "30"]).expect("spawn");
 
     session
         .wait_for("attached to", Duration::from_secs(5))
@@ -91,7 +91,11 @@ fn ctrl_a_k_kills_session() {
     let status = session
         .wait_exit(Duration::from_secs(5))
         .expect("client should exit after kill");
-    assert!(status.success(), "client exit should be clean: {:?}", status);
+    assert!(
+        status.success(),
+        "client exit should be clean: {:?}",
+        status
+    );
 
     // The daemon was sent SIGHUP; give it a moment to die.
     let deadline = std::time::Instant::now() + Duration::from_secs(2);
@@ -109,11 +113,8 @@ fn ctrl_a_ctrl_a_passes_through_literal_byte() {
     // `cat -v` echoes \x01 as the visible string `^A`. If the client
     // intercepted the second \x01 (treating it as a fresh prefix) we'd
     // never see it round-trip back through the daemon's pty.
-    let mut session = PtySession::spawn(
-        &binary_path(),
-        &["run", "--", "cat", "-v"],
-    )
-    .expect("spawn");
+    let mut session =
+        PtySession::spawn(&binary_path(), &["run", "--", "cat", "-v"]).expect("spawn");
 
     session
         .wait_for("attached to", Duration::from_secs(5))

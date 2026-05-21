@@ -6,15 +6,15 @@ use std::path::PathBuf;
 use std::time::SystemTime;
 
 const ADJECTIVES: &[&str] = &[
-    "fuzzy", "quick", "lazy", "happy", "sleepy", "brave", "calm", "eager",
-    "gentle", "kind", "lively", "merry", "nice", "proud", "silly", "witty",
-    "bold", "cool", "dapper", "fancy", "jolly", "keen", "lucky", "noble",
+    "fuzzy", "quick", "lazy", "happy", "sleepy", "brave", "calm", "eager", "gentle", "kind",
+    "lively", "merry", "nice", "proud", "silly", "witty", "bold", "cool", "dapper", "fancy",
+    "jolly", "keen", "lucky", "noble",
 ];
 
 const NOUNS: &[&str] = &[
-    "penguin", "dolphin", "falcon", "tiger", "panda", "koala", "otter", "fox",
-    "owl", "bear", "wolf", "eagle", "shark", "whale", "raven", "lynx",
-    "badger", "gecko", "lemur", "moose", "orca", "quail", "sloth", "zebra",
+    "penguin", "dolphin", "falcon", "tiger", "panda", "koala", "otter", "fox", "owl", "bear",
+    "wolf", "eagle", "shark", "whale", "raven", "lynx", "badger", "gecko", "lemur", "moose",
+    "orca", "quail", "sloth", "zebra",
 ];
 
 /// Session metadata stored on disk
@@ -183,7 +183,11 @@ pub fn find_session(query: &str) -> Result<Option<SessionInfo>> {
         1 => Ok(Some(matches[0].clone())),
         _ => {
             let names: Vec<_> = matches.iter().map(|s| s.name.as_str()).collect();
-            anyhow::bail!("Ambiguous session name '{}', matches: {}", query, names.join(", "));
+            anyhow::bail!(
+                "Ambiguous session name '{}', matches: {}",
+                query,
+                names.join(", ")
+            );
         }
     }
 }

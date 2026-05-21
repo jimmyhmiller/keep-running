@@ -2,6 +2,7 @@
 //!
 //! Discovers and runs all scenario files from the scenarios/ directory.
 
+mod cli_smoke;
 mod harness;
 mod parser;
 
@@ -14,7 +15,10 @@ fn discover_scenarios() -> Vec<PathBuf> {
     let scenarios_dir = PathBuf::from(&manifest_dir).join("scenarios");
 
     if !scenarios_dir.exists() {
-        eprintln!("Warning: scenarios directory not found at {}", scenarios_dir.display());
+        eprintln!(
+            "Warning: scenarios directory not found at {}",
+            scenarios_dir.display()
+        );
         return Vec::new();
     }
 
@@ -22,7 +26,10 @@ fn discover_scenarios() -> Vec<PathBuf> {
         .into_iter()
         .filter_map(|e| e.ok())
         .filter(|e| {
-            e.path().extension().map(|ext| ext == "toml").unwrap_or(false)
+            e.path()
+                .extension()
+                .map(|ext| ext == "toml")
+                .unwrap_or(false)
         })
         .map(|e| e.path().to_path_buf())
         .collect();
@@ -73,20 +80,18 @@ fn run_all_scenarios() {
         print!("Running scenario: {} ... ", scenario_name);
 
         match parser::parse_scenario_file(path) {
-            Ok(scenario) => {
-                match harness::run_scenario(&scenario) {
-                    Ok(()) => {
-                        println!("PASSED");
-                        passed += 1;
-                    }
-                    Err(e) => {
-                        println!("FAILED");
-                        println!("  Error: {}", e);
-                        failed += 1;
-                        failures.push((scenario_name.to_string(), e));
-                    }
+            Ok(scenario) => match harness::run_scenario(&scenario) {
+                Ok(()) => {
+                    println!("PASSED");
+                    passed += 1;
                 }
-            }
+                Err(e) => {
+                    println!("FAILED");
+                    println!("  Error: {}", e);
+                    failed += 1;
+                    failures.push((scenario_name.to_string(), e));
+                }
+            },
             Err(e) => {
                 println!("PARSE ERROR");
                 println!("  Error: {}", e);
@@ -209,7 +214,8 @@ fn test_rapid_reattach() {
 #[test]
 fn test_reattach_large_buffer() {
     let manifest_dir = std::env::var("CARGO_MANIFEST_DIR").unwrap_or_else(|_| ".".to_string());
-    let path = PathBuf::from(&manifest_dir).join("scenarios/reattach/reattach_with_large_buffer.toml");
+    let path =
+        PathBuf::from(&manifest_dir).join("scenarios/reattach/reattach_with_large_buffer.toml");
 
     if !path.exists() {
         println!("Scenario file not found, skipping: {}", path.display());
@@ -239,7 +245,8 @@ fn test_output_during_attach() {
 #[test]
 fn test_multiple_raw_disconnects() {
     let manifest_dir = std::env::var("CARGO_MANIFEST_DIR").unwrap_or_else(|_| ".".to_string());
-    let path = PathBuf::from(&manifest_dir).join("scenarios/edge_cases/multiple_raw_disconnects.toml");
+    let path =
+        PathBuf::from(&manifest_dir).join("scenarios/edge_cases/multiple_raw_disconnects.toml");
 
     if !path.exists() {
         println!("Scenario file not found, skipping: {}", path.display());
@@ -291,8 +298,7 @@ fn zombie_client_does_not_block_daemon_cleanup() {
 
     let session_name = format!("zombie-{}", std::process::id());
 
-    let manifest_dir =
-        std::env::var("CARGO_MANIFEST_DIR").unwrap_or_else(|_| ".".to_string());
+    let manifest_dir = std::env::var("CARGO_MANIFEST_DIR").unwrap_or_else(|_| ".".to_string());
     let binary = PathBuf::from(&manifest_dir)
         .join("target")
         .join("debug")

@@ -3,7 +3,11 @@ use crate::session::{self, SessionInfo};
 use crate::terminal::{self, status, status_dim, RawModeGuard};
 use anyhow::{Context, Result};
 use crossterm::tty::IsTty;
-use crossterm::{execute, terminal::{Clear, ClearType}, cursor::{Hide, MoveTo, Show}};
+use crossterm::{
+    cursor::{Hide, MoveTo, Show},
+    execute,
+    terminal::{Clear, ClearType},
+};
 use std::io::{self, Read, Write};
 use std::os::fd::AsRawFd;
 use std::os::unix::net::UnixStream;
@@ -48,7 +52,9 @@ pub fn attach(session: &SessionInfo) -> Result<()> {
 
     // Wait for attached confirmation (blocking with timeout)
     let mut buf = [0u8; 8192];
-    let n = stream.read(&mut buf).context("Failed to read attach confirmation")?;
+    let n = stream
+        .read(&mut buf)
+        .context("Failed to read attach confirmation")?;
     if n == 0 {
         anyhow::bail!("Connection closed while waiting for attach confirmation");
     }
@@ -63,7 +69,9 @@ pub fn attach(session: &SessionInfo) -> Result<()> {
                 _ => {}
             }
         } else {
-            let n = stream.read(&mut buf).context("Failed to read from daemon")?;
+            let n = stream
+                .read(&mut buf)
+                .context("Failed to read from daemon")?;
             if n == 0 {
                 anyhow::bail!("Connection closed while waiting for attach confirmation");
             }
@@ -80,7 +88,10 @@ pub fn attach(session: &SessionInfo) -> Result<()> {
 
     // Welcome banner (cooked mode — survives at the top of the cleared screen
     // until program output scrolls over it).
-    status(&format!("attached to '{}' · pid {}", session.name, session.pid));
+    status(&format!(
+        "attached to '{}' · pid {}",
+        session.name, session.pid
+    ));
     status_dim("detach with Ctrl+a d  ·  kill with Ctrl+a k");
 
     // Enter raw mode
@@ -126,8 +137,16 @@ pub fn attach(session: &SessionInfo) -> Result<()> {
 
         // Use poll to check for data on stdin and socket
         let mut poll_fds = [
-            libc::pollfd { fd: stdin_fd, events: libc::POLLIN, revents: 0 },
-            libc::pollfd { fd: socket_fd, events: libc::POLLIN, revents: 0 },
+            libc::pollfd {
+                fd: stdin_fd,
+                events: libc::POLLIN,
+                revents: 0,
+            },
+            libc::pollfd {
+                fd: socket_fd,
+                events: libc::POLLIN,
+                revents: 0,
+            },
         ];
 
         let poll_result = unsafe { libc::poll(poll_fds.as_mut_ptr(), 2, 10) }; // 10ms timeout
@@ -143,7 +162,11 @@ pub fn attach(session: &SessionInfo) -> Result<()> {
         // Check stdin
         if poll_fds[0].revents & libc::POLLIN != 0 {
             let n = unsafe {
-                libc::read(stdin_fd, input_buf.as_mut_ptr() as *mut libc::c_void, input_buf.len())
+                libc::read(
+                    stdin_fd,
+                    input_buf.as_mut_ptr() as *mut libc::c_void,
+                    input_buf.len(),
+                )
             };
 
             if n == 0 {
