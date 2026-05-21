@@ -1,5 +1,9 @@
 # keep-running
 
+[![Crates.io](https://img.shields.io/crates/v/keep-running.svg)](https://crates.io/crates/keep-running)
+[![CI](https://github.com/jimmyhmiller/keep-running/actions/workflows/ci.yml/badge.svg)](https://github.com/jimmyhmiller/keep-running/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 A terminal session manager. Like `dtach`, but with names you can remember and a CLI that doesn't fight you.
 
 Start something, walk away, come back, it's still running.
