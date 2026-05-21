@@ -2,7 +2,16 @@
 name = "keep-running"
 version = "0.1.0"
 edition = "2021"
+rust-version = "1.75"
 description = "Human-friendly terminal session manager with dtach-style detach"
+authors = ["Jimmy Miller <jimmyhmiller@gmail.com>"]
+license = "MIT"
+repository = "https://github.com/jimmyhmiller/keep-running"
+homepage = "https://github.com/jimmyhmiller/keep-running"
+readme = "README.md"
+keywords = ["terminal", "session", "dtach", "detach", "pty"]
+categories = ["command-line-utilities"]
+exclude = ["scenarios/", "scripts/"]
 
 [lib]
 name = "keep_running"
